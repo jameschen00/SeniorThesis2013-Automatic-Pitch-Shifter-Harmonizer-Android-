@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">SeniorThesis2013</string>
+    <string name="hello">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+	<string name="pitchFrag">Pitch</string>
+    <string name="waveformFrag">Waveform</string>
+
+</resources>

@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="fill"
+    android:orientation="horizontal"
+    android:weightSum="1.0" >
+    
+	<TabHost
+	    android:id="@android:id/tabhost"
+    	android:layout_height="match_parent"
+    	android:layout_width="0dp"
+    	android:layout_weight="0.5"
+	    >
+	    <LinearLayout
+	        android:orientation="vertical"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        >
+
+	        <TabWidget
+	            android:id="@android:id/tabs"
+	            android:orientation="horizontal"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:layout_weight="0"
+	            />
+
+	        <FrameLayout
+	            android:id="@android:id/tabcontent"
+	            android:layout_width="0dp"
+	            android:layout_height="0dp"
+	            android:layout_weight="0"/>
+	        <FrameLayout
+                android:id="@+android:id/realtabcontent"
+                android:layout_width="fill_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>	        
+	    </LinearLayout>
+	</TabHost>
+	    <LinearLayout
+	        android:orientation="vertical"
+	        android:layout_height="match_parent"    
+	    	android:layout_width="0dp"
+	    	android:layout_weight="0.5"
+	        >
+			<SeekBar android:id="@+id/horZoom"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:max="100"
+		        android:progress="50"/>
+			<SeekBar android:id="@+id/verZoom"
+		        android:layout_width="match_parent"
+		        android:layout_height="wrap_content"
+		        android:max="100"
+		        android:progress="50"/>
+		</LinearLayout>
+</LinearLayout>
