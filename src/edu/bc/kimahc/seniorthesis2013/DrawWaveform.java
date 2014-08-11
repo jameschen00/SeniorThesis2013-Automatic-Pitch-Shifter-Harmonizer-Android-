@@ -10,6 +10,7 @@ import com.badlogic.gdx.audio.analysis.FourierTransform;
 
 import edu.bc.kimahc.draw.DrawStrat;
 import edu.bc.kimahc.draw.FFTStrat;
+import edu.bc.kimahc.draw.ACStrat;
 import edu.bc.kimahc.draw.PitchStrat;
 import edu.bc.kimahc.draw.WaveformStrat;
 
@@ -17,22 +18,30 @@ public class DrawWaveform {
 
     private FloatBuffer vertexBuffer;
     private float[][] audioBuffer;
+    private float[] pausedBuffer;
+    private boolean isPausedYet = false;
     private int kNumDrawBuffers = 1024;
     private int audioBufferLength;
     private int circularBufferCount;
     private int drawBufferLength;
+	private int horizontalZoom;
+	private int verticalZoom;
 	private int vertexCount;
 	private int vertexStride;
+	private int tab;
 	private float lineWidth = 1f;
 	private static final int WAVEFORMPLOT = 1;
 	private static final int FFTPLOT = 2;
-	private static final int PITCHPLOT = 3;
+	private static final int ACPLOT = 3;
+	private static final int PITCHPLOT = 4;
 	
     private DrawStrat waveformStrat;
     private DrawStrat fftStrat;
+    private DrawStrat acStrat;
     private DrawStrat pitchStrat;
     private DrawStrat currentStrat;
-	
+	private GlobalAppData global;
+    
 	long time;
 
 	private long startTime;
@@ -48,6 +57,7 @@ public class DrawWaveform {
 		    "attribute vec4 vPosition;" +
 		    "void main() {" +
 		    "  gl_Position = vPosition;" +
+		    "gl_PointSize = 6.0;" +
 		    "}";
 
 	private final String fragmentShaderCode =
@@ -76,7 +86,7 @@ public class DrawWaveform {
         // initialize vertex byte buffer for shape coordinates
         ByteBuffer bb = ByteBuffer.allocateDirect(
                 // (number of coordinate values * 4 bytes per float)
-        		audioBufferLength * 2 * 4);
+        		audioBufferLength * 2 * 4 * 2); //doubled size to add pitch marks...let's see what happens
        
         // use the device hardware's native byte order
         bb.order(ByteOrder.nativeOrder());
@@ -87,8 +97,14 @@ public class DrawWaveform {
 
         waveformStrat = new WaveformStrat(vertexBuffer, audioBufferLength);
         fftStrat = new FFTStrat(vertexBuffer, audioBufferLength);
+        acStrat = new ACStrat(vertexBuffer, audioBufferLength);
         pitchStrat = new PitchStrat(vertexBuffer, audioBufferLength);
+        
         currentStrat = waveformStrat;
+
+		global = GlobalAppData.getInstance();
+		tab = global.getTab();
+        
         System.out.println("bb size: " + bb.capacity());
 		System.out.println("vb size: " + vertexBuffer.capacity());
         // add the coordinates to the FloatBuffer
@@ -113,9 +129,10 @@ public class DrawWaveform {
        color[2] = b;
        color[3] = a;
     }
-    
-	public void sendAudioData(float[] floatAudioBuffer, int horizontalZoom, int verticalZoom, int tab){
+    /*
+	public void sendAudioData(float[] floatAudioBuffer){
 		//this.audioBuffer[circularBufferCount] = audioBuffer;
+		tab = global.getTab();
 		if(tab == WAVEFORMPLOT){
 			currentStrat = waveformStrat;
 		}
@@ -125,27 +142,42 @@ public class DrawWaveform {
 		else if(tab == PITCHPLOT){
 			currentStrat = pitchStrat;
 		}
-		setDrawBuffers(floatAudioBuffer, horizontalZoom, verticalZoom, tab);
+		setDrawBuffers(floatAudioBuffer, tab);
 		//circularBufferCount++;
 		if(circularBufferCount == kNumDrawBuffers)
 			circularBufferCount = 0;
 		//setDrawBuffers(audioBuffer);
-	}
+	}*/
 	
-	public void sendProcessedAudioData(float[] processedAudioBuffer,
-			int horizontalZoom, int verticalZoom, int tab) {
-		setProcessedDrawBuffers(processedAudioBuffer, horizontalZoom, verticalZoom, tab);
+	public void sendProcessedAudioData(float[] processedAudioBuffer) {
+		tab = global.getTab();
+		if(tab == WAVEFORMPLOT){
+			currentStrat = waveformStrat;
+		}
+		else if(tab == FFTPLOT){
+			currentStrat = fftStrat;
+		}
+		else if(tab == ACPLOT){
+			currentStrat = acStrat;
+		}
+		else if(tab == PITCHPLOT){
+			currentStrat = pitchStrat;
+		}
+		setDrawBuffers(processedAudioBuffer);
+		//setProcessedDrawBuffers(processedAudioBuffer, horizontalZoom, verticalZoom, tab);
 		
 	}
-	
+	/*
 	public void setProcessedDrawBuffers(float[] buf, int horizontalZoom, int verticalZoom, int tab){
 		currentStrat.setProcessedBuffers(buf, drawBufferLength, verticalZoom, tab);
 	}
-	public void setDrawBuffers(float[] buf, int horizontalZoom, int verticalZoom, int tab){
-
+	*/
+	public void setDrawBuffers(float[] buf){
+		horizontalZoom = global.getHorizontalZoom();
+		verticalZoom = global.getVerticalZoom();
 		// do something diff for audio and fft data
 		//System.out.println(120f/(horizontalZoom+20f));
-		drawBufferLength = audioBufferLength * (horizontalZoom+1) / 101;
+		drawBufferLength = (int) (audioBufferLength * (float)(horizontalZoom+1) / 101f);
 		
 		//audioBuffer[circularBufferCount] = buf;
 		
@@ -153,10 +185,28 @@ public class DrawWaveform {
 		//float max = 65536; // 2^16
 
 		
-		//float[] abuf = new float[audioBufferLength*2];
-		vertexBuffer = currentStrat.setDrawBuffers(buf, drawBufferLength, verticalZoom, tab);
+		//float[] abuf = new float[audioBufferLength*2];		
 		vertexCount = currentStrat.setVertexCount(drawBufferLength);
 		lineWidth = currentStrat.setLineWidth(horizontalZoom);
+		if(global.getPause()){
+			if(!isPausedYet){
+				isPausedYet = true;
+				System.out.println("first pause");
+				pausedBuffer = new float[buf.length];
+				System.arraycopy(buf, 0, pausedBuffer, 0, buf.length);
+			}
+			System.out.println("paused " + pausedBuffer[0] + " and reg buf " + buf[0]);
+			vertexBuffer = currentStrat.setDrawBuffers(pausedBuffer, drawBufferLength, horizontalZoom, verticalZoom, tab);
+		}
+		else{
+			if(isPausedYet){
+				isPausedYet = false;
+				System.out.println("first unpause");
+			}
+			vertexBuffer = currentStrat.setDrawBuffers(buf, drawBufferLength, horizontalZoom, verticalZoom, tab);
+		}
+		
+
 		
 		
 		/*
@@ -212,11 +262,7 @@ public class DrawWaveform {
 		 */
 	}
     
-    public void draw(int tab) {
-    	
-
-		startTime = System.nanoTime();
-    	
+    public void draw() {	
     	synchronized(vertexBuffer){
 	        // Add program to OpenGL ES environment
 	        GLES20.glUseProgram(mProgram);
@@ -244,23 +290,16 @@ public class DrawWaveform {
         // Draw the triangle
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
         GLES20.glLineWidth(lineWidth);
-        if(tab == WAVEFORMPLOT)
-        	GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
-        else if(tab == FFTPLOT)
-        	GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
-        else if(tab == PITCHPLOT){
-        	GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
-        }
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+        currentStrat.draw(vertexCount);		//draw gl lines based on current strategy object
+
         //System.out.println("  draw: " + (System.nanoTime() - time));
         //GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, vertexCount);
         //GLES20.glDrawArrays(GLES20.GL_LINES, 0, vertexCount);
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
-        
-        endTime = System.nanoTime();
-        dt = (endTime - startTime)/1000000l;
-        System.out.println("drawing delay = " + dt);
     }
+    
     public static int loadShader(int type, String shaderCode){
 
         // create a vertex shader type (GLES20.GL_VERTEX_SHADER)

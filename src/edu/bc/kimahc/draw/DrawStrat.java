@@ -10,12 +10,12 @@ public abstract class DrawStrat {
 		DrawStrat.audioBufferLength = bufLen;
 	}
 	
-	public abstract FloatBuffer setDrawBuffers(float[] buf, int drawBufferLength, int verticalZoom, int tab);
+	public abstract FloatBuffer setDrawBuffers(float[] buf, int drawBufferLength, int horizontalZoom, int verticalZoom, int tab);
 	
-	public abstract FloatBuffer setProcessedBuffers(float[] buf, int drawBufferLength, int verticalZoom, int tab);
-
 	public abstract int setVertexCount(int drawBufferLength);
 
 	public abstract float setLineWidth(int horizontalZoom);
+
+	public abstract void draw(int vertexCount);
  
 }

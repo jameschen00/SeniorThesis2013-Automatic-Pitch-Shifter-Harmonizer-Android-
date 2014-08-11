@@ -19,21 +19,11 @@ public class DrawFragment extends Fragment{
 	private int tab = 1;
 	private GLSurfaceView surfaceView;
 	private MyRenderer renderer;
-	private int horizontalZoom = 50;
-	private int verticalZoom = 50;
 	private long startTime;
 	private long endTime, dt;
 	
 	public void onCreate(Bundle savedInstanceState){
-		startTime = System.nanoTime();
 		super.onCreate(savedInstanceState);
-
-		if (savedInstanceState != null) {
-            tab = savedInstanceState.getInt("tab"); //set the tab as per the saved state
-            horizontalZoom = savedInstanceState.getInt("horizontalZoom");
-            verticalZoom = savedInstanceState.getInt("verticalZoom");
-        }
-		
 	}
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState){
@@ -41,44 +31,13 @@ public class DrawFragment extends Fragment{
 
 		surfaceView = (GLSurfaceView) v.findViewById(R.id.surfaceView); 
 	    surfaceView.setEGLContextClientVersion(2);
-	    renderer = new MyRenderer(tab, horizontalZoom, verticalZoom);
+	    renderer = new MyRenderer();
 	    surfaceView.setRenderer(renderer);
-	    //surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+	    surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 	    System.out.println("tab = " + tab);
 		return v;
 	}
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putInt("tab", tab); //save the tab selected
-        outState.putInt("horizontalZoom", horizontalZoom);
-        outState.putInt("verticalZoom", verticalZoom);
-        super.onSaveInstanceState(outState);
-    }
-    public void setTab(String tabString){
-	    if(tabString.equalsIgnoreCase("tab1")){
-	    	tab = 1;
-	    	renderer.setTab(tab);
-	    }
-	    else if(tabString.equalsIgnoreCase("tab2")){
-	    	tab = 2;
-	    	renderer.setTab(tab);
-	    }
-	    else if(tabString.equalsIgnoreCase("tab3")){
-	    	tab = 3;
-	    	renderer.setTab(tab);
-	    }
-    }
-    
-	public void setHorizontalZoom(int progress) {
-		horizontalZoom = progress;
-		if(renderer != null)
-			renderer.setHorizontalZoom(horizontalZoom);
-	}
-	
-	public void setVerticalZoom(int progress) {
-		verticalZoom = progress;
-		if(renderer != null)
-			renderer.setVerticalZoom(verticalZoom);
-	}
+
 	
 	@Override
 	public void onResume()
@@ -95,10 +54,10 @@ public class DrawFragment extends Fragment{
 	    super.onPause();
 	    surfaceView.onPause();
 	}
-	
+	/*
 	public void sendAudioData(float[] floatAudioBuffer){
 		if(renderer != null && floatAudioBuffer != null){
-/*
+
 	        endTime = System.nanoTime();
 	        dt = endTime - startTime;
 	        System.out.println("dt = " + dt);
@@ -113,7 +72,7 @@ public class DrawFragment extends Fragment{
 	        System.out.println("send data = " + dt);
 			
 			surfaceView.requestRender();
-			*/
+			
 			renderer.sendAudioData(floatAudioBuffer);
 		}
 			
@@ -137,6 +96,7 @@ public class DrawFragment extends Fragment{
 	public void sendProcessedAudioData(float[] processedAudioBuffer) {
 		if(renderer != null && processedAudioBuffer != null){
 			renderer.sendProcessedAudioData(processedAudioBuffer);
+			surfaceView.requestRender();
 		}
 	}
 

@@ -960,22 +960,32 @@ containing a value of this type.
         public static final int abs__title=0x7f04001b;
         public static final int abs__titleDivider=0x7f04001c;
         public static final int abs__up=0x7f04000b;
+        public static final int addShift=0x7f04003a;
+        public static final int combineCheck=0x7f040037;
         public static final int disableHome=0x7f040009;
         public static final int edit_query=0x7f040027;
+        public static final int filterCheck=0x7f04003d;
         public static final int homeAsUp=0x7f040006;
         public static final int horZoom=0x7f040033;
+        public static final int horZoomText=0x7f040034;
         public static final int listMode=0x7f040002;
-        public static final int menu_settings=0x7f040037;
+        public static final int liveCheck=0x7f04003b;
+        public static final int menu_settings=0x7f040040;
         public static final int normal=0x7f040001;
+        public static final int pauseButton=0x01010001;
         public static final int realtabcontent=0x01010000;
+        public static final int recordButton=0x7f04003c;
+        public static final int shiftAmount=0x7f040039;
         public static final int showCustom=0x7f040008;
         public static final int showHome=0x7f040005;
         public static final int showTitle=0x7f040007;
-        public static final int surfaceView=0x7f040035;
+        public static final int subShift=0x7f040038;
+        public static final int surfaceView=0x7f04003e;
         public static final int tabMode=0x7f040003;
         public static final int useLogo=0x7f040004;
-        public static final int verZoom=0x7f040034;
-        public static final int waveformText=0x7f040036;
+        public static final int verZoom=0x7f040035;
+        public static final int verZoomText=0x7f040036;
+        public static final int waveformText=0x7f04003f;
         public static final int wrap_content=0x7f040000;
     }
     public static final class integer {
@@ -1062,9 +1072,16 @@ containing a value of this type.
          */
         public static final int abs__shareactionprovider_share_with_application=0x7f090009;
         public static final int app_name=0x7f09000f;
+        public static final int filter=0x7f09001a;
         public static final int hello=0x7f090010;
+        public static final int horZoomString=0x7f090018;
         public static final int menu_settings=0x7f090011;
+        public static final int pause=0x7f090014;
         public static final int pitchFrag=0x7f090012;
+        public static final int shiftString=0x7f090017;
+        public static final int start_record=0x7f090015;
+        public static final int stop_record=0x7f090016;
+        public static final int verZoomString=0x7f090019;
         public static final int waveformFrag=0x7f090013;
     }
     public static final class style {

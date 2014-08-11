@@ -10,7 +10,7 @@
 	    android:id="@android:id/tabhost"
     	android:layout_width="match_parent"
     	android:layout_height="0dp"
-    	android:layout_weight="0.6"
+    	android:layout_weight="0.5"
 	    >
 	    <LinearLayout
 	        android:orientation="vertical"
@@ -43,17 +43,144 @@
 	        android:orientation="vertical"
 	        android:layout_width="match_parent"    
 	    	android:layout_height="0dp"
-	    	android:layout_weight="0.4"
+	    	android:layout_weight="0.5"
 	        >
-			<SeekBar android:id="@+id/horZoom"
-		        android:layout_width="match_parent"
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" >
+
+	            <SeekBar
+	                android:id="@+id/horZoom"
+            	    android:layout_width="0dp"
+	    			android:layout_weight="0.7"
+	                android:layout_height="wrap_content"
+	                android:max="100"
+	                android:progress="50" />
+
+	            <TextView
+	                android:id="@+id/horZoomText"
+            	    android:layout_width="0dp"
+	    			android:layout_weight="0.3"
+	                android:layout_height="match_parent"
+	                android:text="@string/horZoomString"
+	                android:gravity="center"
+	                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+	        </LinearLayout>
+
+	        <LinearLayout
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content" >
+
+	            <SeekBar
+	                android:id="@+id/verZoom"
+            	    android:layout_width="0dp"
+	    			android:layout_weight="0.7"
+	                android:layout_height="wrap_content"
+	                android:max="100"
+	                android:progress="50" />
+
+	            <TextView
+	                android:id="@+id/verZoomText"
+            	    android:layout_width="0dp"
+	    			android:layout_weight="0.3"
+	                android:layout_height="match_parent"
+	                android:text="@string/verZoomString"
+	                android:gravity="center"
+	                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+	        </LinearLayout>
+
+			<LinearLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="wrap_content" >
+
+				<Button
+				    android:id="@+android:id/pauseButton"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:onClick="pauseDraw"
+				    android:text="@string/pause" />
+
+			</LinearLayout>
+
+			<LinearLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="wrap_content" >
+
+				<LinearLayout
+				    android:layout_width="match_parent"
+				    android:layout_height="wrap_content" >
+
+   				    <CheckBox
+				        android:id="@+id/combineCheck"
+				        android:onClick="toggleCombine"
+				        android:layout_width="wrap_content"
+				        android:layout_height="wrap_content"
+				        android:text="Combine" />
+
+				    <Button
+				        android:id="@+id/subShift"
+				        style="?android:attr/buttonStyleSmall"
+				        android:textSize="20dp"
+				        android:onClick="subShift"
+				        android:layout_width="40dp"
+				        android:layout_height="wrap_content"
+				        android:text="-" />
+
+				    <TextView
+				        android:id="@+id/shiftAmount"
+				        android:layout_width="30dp"
+				        android:layout_height="match_parent"
+				        android:gravity="center"
+				        android:text="@string/shiftString"
+				        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+				    <Button
+				        android:id="@+id/addShift"
+				        style="?android:attr/buttonStyleSmall"
+				        android:textSize="20dp"
+				        android:onClick="addShift"
+				        android:layout_width="40dp"
+				        android:layout_height="wrap_content"
+				        android:text="+" />
+				    
+				</LinearLayout>
+
+			</LinearLayout>
+
+			<LinearLayout
+			    android:layout_width="match_parent"
+			    android:layout_height="wrap_content" >
+
+				<RelativeLayout
+				    android:layout_width="match_parent"
+				    android:layout_height="match_parent" >
+   				    <CheckBox
+				        android:id="@+id/liveCheck"
+				        android:onClick="toggleLive"
+				        android:layout_width="wrap_content"
+				        android:layout_height="wrap_content"
+				        android:text="Live" />
+					<ToggleButton
+					    android:id="@+id/recordButton"
+					    android:layout_width="wrap_content"
+					    android:layout_height="wrap_content"
+					    android:layout_alignParentTop="true"
+					    android:layout_centerHorizontal="true"
+					    android:text="ToggleButton"
+					    android:onClick="toggleRecord"
+					    android:textOff="@string/start_record"
+					    android:textOn="@string/stop_record" />
+
+				</RelativeLayout>
+
+			</LinearLayout>
+			<CheckBox
+		        android:id="@+id/filterCheck"
+		        android:onClick="toggleFilter"
+		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content"
-		        android:max="100"
-		        android:progress="50" />
-						<SeekBar android:id="@+id/verZoom"
-		        android:layout_width="match_parent"
-		        android:layout_height="wrap_content"
-		        android:max="100"
-		        android:progress="50"/>
+		        android:text="@string/filter" />
 		</LinearLayout>
 </LinearLayout>

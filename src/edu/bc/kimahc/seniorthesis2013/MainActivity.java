@@ -18,9 +18,13 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 /*
  * For locking,
 
@@ -36,74 +40,67 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 	private HashMap<String, TabInfo> mapTabInfo = new HashMap<String, TabInfo>();
 	private static String drawFragmentTag = "drawFragment";
 	private static AudioThread audioThread;
-	private static AudioProcessingThread audioProcessingThread;
+	//private static AudioProcessingThread audioProcessingThread;
 	private static DrawFragment drawFrag = null;
 	private static long audiotime = 0;
 	private static long time = 0;
 	private static long postproc = 0;
-	private static String tab;
     private SeekBar horizontalZoomBar;
     private SeekBar verticalZoomBar;
     private int defaultHorizontalZoom = 50;
     private int defaultVerticalZoom = 50;
+    private GlobalAppData global = GlobalAppData.getInstance();;
+	private TextView shiftTextView;
+	private CheckBox liveCheckBox;
+	private CheckBox combineCheckBox;
+	private CheckBox filterCheckBox;
+	private TextView horZoomText;
 	
 	private static final Handler audioHandler = new Handler() {
 		  @Override
 		  public void handleMessage(Message msg) {
 			  if(drawFrag != null){
 				  Bundle bundle = msg.getData();
-				  short[] audioBuffer = bundle.getShortArray("aBuffer");
-				  float[] floatAudioBuffer = convertShortArrayToFloatArray(audioBuffer);
-				  float[] processedAudioBuffer = null;
+				  float[] processedAudioBuffer = bundle.getFloatArray("aBuffer");
 				  audiotime = bundle.getLong("audiotime");
 				  time = System.nanoTime();
-				  System.out.println("first handler: " + (time - audiotime)/1000000f);
-				  if(audioBuffer !=null){
-					  drawFrag.sendAudioData(floatAudioBuffer);
-					  if(audioProcessingThread != null)
-						  processedAudioBuffer = audioProcessingThread.processData(floatAudioBuffer, tab);
-					  if(processedAudioBuffer != null)
-						  drawFrag.sendProcessedAudioData(processedAudioBuffer);
+				  System.out.println("handler: " + (time - audiotime)/1000000l);
+				  if(processedAudioBuffer !=null){
+					  //drawFrag.sendAudioData(floatAudioBuffer);
+					  //if(audioProcessingThread != null)
+						//  processedAudioBuffer = audioProcessingThread.processData(floatAudioBuffer);
+					  drawFrag.sendProcessedAudioData(processedAudioBuffer);
 				  }
-				  int count = bundle.getInt("countint");
+				  //int count = bundle.getInt("countint");
 				  //System.out.println("mainactivity count: " + count);
 				  
-				  time = System.nanoTime();
-				  System.out.println("post proc handler delay: " + (time - audiotime)/1000000f);
+				  //time = System.nanoTime();
+				  //System.out.println("post proc handler delay: " + (time - audiotime)/1000000l);
 				  //System.out.println("mainactivity time diff: " + (time - audiotime) + "    count= " + count);
 				 
 			  }
 		     }
 		 };
-		 
+		 /*
 	private static final Handler audioProcessingHandler = new Handler() {
 		  @Override
 		  public void handleMessage(Message msg) {
 			  postproc = System.nanoTime();
-			  Log.i("data to proc (handler to handler)", ""+(postproc - time)/1000000f);
+			  Log.i("data to proc (handler to handler)", ""+(postproc - time)/1000000l);
 			  if(drawFrag != null){
 				  Bundle bundle = msg.getData();
 				  float[] processedAudioBuffer = bundle.getFloatArray("paBuffer");
 				  long startTime = bundle.getLong("processTime");
 
 			        long endTime = System.nanoTime();
-			        Log.i("proc handler delay = ", ""+(endTime-startTime)/1000000f);
+			        Log.i("proc handler delay = ", ""+(endTime-startTime)/1000000l);
 				  if(processedAudioBuffer != null)	
 					  drawFrag.sendProcessedAudioData(processedAudioBuffer);
-				  
-				  
-				  /*
-				  int count = bundle.getInt("countint");
-				  //System.out.println("mainactivity count: " + count);
-				  audiotime = bundle.getLong("audiotime");
-				  time = System.nanoTime();
-				  //System.out.println("mainactivity time diff: " + (time - audiotime) + "    count= " + count);
-				   * 
-				   */
 				 
 			  }
 		     }
 		 };		 
+		 */
 	public class TabInfo {
 		 private String tag;
          private Class<?> clss;
@@ -152,24 +149,47 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
         verticalZoomBar = (SeekBar)findViewById(R.id.verZoom);
         horizontalZoomBar.setOnSeekBarChangeListener(this);
         verticalZoomBar.setOnSeekBarChangeListener(this);
+        shiftTextView = (TextView) findViewById(R.id.shiftAmount);
+        liveCheckBox = (CheckBox) findViewById(R.id.liveCheck);
+        global.setLive(liveCheckBox.isChecked());
+        combineCheckBox = (CheckBox) findViewById(R.id.combineCheck);
+        global.setCombine(combineCheckBox.isChecked());
+        filterCheckBox = (CheckBox) findViewById(R.id.filterCheck);
+        global.setFilter(filterCheckBox.isChecked());
+        horZoomText = (TextView) findViewById(R.id.horZoomText);
+       // 
+        //final Button pauseButton = (Button) findViewById(R.id.pauseButton);
+        //pauseButton.setOnClickListener(new View.OnClickListener())
 		
 		if (savedInstanceState != null) {
-			tab = savedInstanceState.getString("tab");
-            mTabHost.setCurrentTabByTag(tab); //set the tab as per the saved state
-            horizontalZoomBar.setProgress(savedInstanceState.getInt("horizontalZoom"));
-            verticalZoomBar.setProgress(savedInstanceState.getInt("verticalZoom"));
+			String tab = savedInstanceState.getString("tab");
+			int horizontalZoom = savedInstanceState.getInt("horizontalZoom");
+			int verticalZoom = savedInstanceState.getInt("verticalZoom");
+			int shiftAmount = savedInstanceState.getInt("shiftAmount");
+			global.setTab(convertTabtagToInt(tab));
+			global.setHorizontalZoom(horizontalZoom);
+			global.setVerticalZoom(verticalZoom);
+			global.setShiftAmount(shiftAmount);
+            mTabHost.setCurrentTabByTag(savedInstanceState.getString("tab")); //set the tab as per the saved state
+            horizontalZoomBar.setProgress(horizontalZoom);
+            verticalZoomBar.setProgress(verticalZoom);
+            horZoomText.setText(Integer.toString((int) (global.getAudioBufferLength() * (float)(horizontalZoom+1) / 101f)));
 		}
 		else{
-			tab = "Tab1";
+			global.setTab(1);
 			horizontalZoomBar.setProgress(defaultHorizontalZoom);
 			verticalZoomBar.setProgress(defaultVerticalZoom);
+			global.setHorizontalZoom(defaultHorizontalZoom);
+			global.setVerticalZoom(defaultVerticalZoom);
+			global.setShiftAmount(Integer.parseInt(shiftTextView.getText().toString()));
+			horZoomText.setText(Integer.toString((int) (global.getAudioBufferLength() * (float)(defaultHorizontalZoom+1) / 101f)));
 		}
 	}
 	
 	protected void onResume(){
 		super.onResume();
 		audioThread = new AudioThread(audioHandler);
-		audioProcessingThread = new AudioProcessingThread(audioProcessingHandler);
+		//audioProcessingThread = new AudioProcessingThread(audioProcessingHandler);
 		Log.i("state?", audioThread.getState().toString());
 		if(audioThread.getState() == Thread.State.NEW){
 			Log.i("starting", "starting new recording thread from onResume!");
@@ -180,7 +200,7 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 			audioThread = null;
 			audioThread = new AudioThread(audioHandler);
 			audioThread.start();
-		}
+		}/*
 		if(audioProcessingThread.getState() == Thread.State.NEW){
 			Log.i("starting", "starting new processing thread from onResume!");
 			audioProcessingThread.start();
@@ -190,7 +210,7 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 			audioProcessingThread = null;
 			audioProcessingThread = new AudioProcessingThread(audioProcessingHandler);
 			audioProcessingThread.start();
-		}
+		}*/
 	}
 	
 
@@ -206,9 +226,11 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
     	Log.i("pausing", "onPAUSE!!!");
     	super.onPause();
     	audioThread.killThread();
+    	audioThread.onResume();
     	audioThread = null;
-    	audioProcessingThread.killThread();
-    	audioProcessingThread = null;
+    	
+    	//audioProcessingThread.killThread();
+    	//audioProcessingThread = null;
     	//audioThread.onPause();
     	
     }
@@ -243,6 +265,7 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
         outState.putString("tab", mTabHost.getCurrentTabTag()); //save the tab selected
         outState.putInt("horizontalZoom", horizontalZoomBar.getProgress());
         outState.putInt("verticalZoom", verticalZoomBar.getProgress());
+        outState.putInt("shiftAmount", Integer.parseInt(shiftTextView.getText().toString()));
         super.onSaveInstanceState(outState);
     }
 
@@ -257,7 +280,9 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         MainActivity.addTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab2").setIndicator("FFT"), ( tabInfo = new TabInfo("Tab2", DrawFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
-        MainActivity.addTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab3").setIndicator("Pitch"), ( tabInfo = new TabInfo("Tab3", DrawFragment.class, args)));
+        MainActivity.addTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab3").setIndicator("AC"), ( tabInfo = new TabInfo("Tab3", DrawFragment.class, args)));
+        this.mapTabInfo.put(tabInfo.tag, tabInfo);
+        MainActivity.addTab(this, this.mTabHost, this.mTabHost.newTabSpec("Tab4").setIndicator("Pitch"), ( tabInfo = new TabInfo("Tab4", DrawFragment.class, args)));
         this.mapTabInfo.put(tabInfo.tag, tabInfo);
         // Default to first tab
         this.onTabChanged("Tab1");
@@ -275,7 +300,8 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 	private static void addTab(MainActivity activity, TabHost tabHost, TabHost.TabSpec tabSpec, TabInfo tabInfo) {
 		// Attach a Tab view factory to the spec
 		tabSpec.setContent(activity.new TabFactory(activity));
-        String tag = tabSpec.getTag();
+        
+		//String tag = tabSpec.getTag();
 
         // Check to see if we already have a fragment for this tab, probably
         // from a previously saved state.  If so, deactivate it, because our
@@ -316,13 +342,13 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 		
 		drawFrag = (DrawFragment) this.getSupportFragmentManager().findFragmentByTag(drawFragmentTag);
 		if(drawFrag != null&&drawFrag.isResumed()){
-			drawFrag.setTab(tag);
+			//drawFrag.setTab(tag);
 			
 			//System.out.println("tab tag = " + tag);
 		}else{
 			//System.out.println("wtf");
 		}
-		tab = tag;
+		global.setTab(convertTabtagToInt(tag));
     }
 	
     public static float[] convertShortArrayToFloatArray(short[] shortArray)
@@ -333,16 +359,18 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
         return floatArray;
     }
 
-
+    public int convertTabtagToInt(String tab){
+    	return tab.charAt(3)-'0';
+    }
 
 
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromTouch) {
-        if(drawFrag != null){
-        	if(seekBar.equals(horizontalZoomBar))
-        		drawFrag.setHorizontalZoom(progress);
-        	if(seekBar.equals(verticalZoomBar))
-        		drawFrag.setVerticalZoom(progress);
-        }
+    	if(seekBar.equals(horizontalZoomBar)){
+    		global.setHorizontalZoom(progress);
+    		horZoomText.setText(Integer.toString((int) (global.getAudioBufferLength() * (float)(progress+1) / 101f)));
+    	}
+    	if(seekBar.equals(verticalZoomBar))
+    		global.setVerticalZoom(progress);
     }
 
     public void onStartTrackingTouch(SeekBar seekBar) {
@@ -351,5 +379,48 @@ public class MainActivity extends FragmentActivity implements TabHost.OnTabChang
 
     public void onStopTrackingTouch(SeekBar seekBar) {
         
+    }
+    
+    public void pauseDraw(View view) {
+        global.setPause();
+    }
+    
+    public void subShift(View view) {
+    	int shift = Integer.parseInt(shiftTextView.getText().toString());
+    	shift--;
+    	shiftTextView.setText(Integer.toString(shift));
+    	global.setShiftAmount(shift);
+    }
+    
+    public void addShift(View view) {
+    	int shift = Integer.parseInt(shiftTextView.getText().toString());
+    	shift++;
+    	shiftTextView.setText(Integer.toString(shift));
+    	global.setShiftAmount(shift);
+    }
+    
+    public void toggleRecord(View view) {
+    	if(audioThread.isAlive()){
+	        // Is the toggle on?
+	        boolean on = ((ToggleButton) view).isChecked();
+	        
+	        if (on && !global.getLive()) {
+	            audioThread.startWriteFile(); //start writing to file if live is not on
+	        } else {
+	        	audioThread.stopWriteFile(); //must try to stop writing file if started, regardless of what the live checkbox is now
+	        }
+    	}
+    }
+    
+    public void toggleLive(View view){
+    	global.setLive(((CheckBox) view).isChecked());
+    }
+    
+    public void toggleCombine(View view){
+    	global.setCombine(((CheckBox) view).isChecked());
+    }
+    
+    public void toggleFilter(View view){
+    	global.setFilter(((CheckBox) view).isChecked());
     }
 }
