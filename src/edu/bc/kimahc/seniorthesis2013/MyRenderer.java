@@ -1,27 +1,17 @@
 package edu.bc.kimahc.seniorthesis2013;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView.Renderer;
+import android.os.Bundle;
 import android.util.Log;
 
 public class MyRenderer implements Renderer {
-	private DrawWaveform drawWaveform;
+	private DrawClass drawWaveform;
 	private GlobalAppData global;
-	private int tab;
-	private int horizontalZoom;
-	private int verticalZoom;
-	private float[] audioBuffer = null;
-	private float[] processedAudioBuffer = null;
-	private boolean isProcessedDataReady = false;
-	private boolean isDrawReady = false;
 	private boolean surfaceReady = false;
 	private long startTime, oldTime;
 	private long endTime, dt;
@@ -32,38 +22,19 @@ public class MyRenderer implements Renderer {
 	
 	public MyRenderer() {
 		global = GlobalAppData.getInstance();
-		this.tab = global.getTab();
-		this.horizontalZoom = global.getHorizontalZoom();
-		this.verticalZoom = global.getVerticalZoom();
 		startTime = System.nanoTime();
 		maxDelta = (long) (1000f*(2048f/44100f)); // 46ms frames
 	}
-/*
-	public void sendAudioData(float[] floatAudioBuffer){
-		regDataTime = System.nanoTime();
+
+	public void sendProcessedBundle(Bundle bundle) {
 		if(drawWaveform != null && surfaceReady){
-			//this.audioBuffer = floatAudioBuffer;
-			drawWaveform.sendAudioData(floatAudioBuffer);
-			isDrawReady = true;
-		}
-		
-	}
-	*/
-	public void sendProcessedAudioData(float[] processedAudioBuffer) {
-		//procDataTime = System.nanoTime();
-		//Log.i("processing time", ""+(procDataTime-regDataTime)/1000000l); //needs sendAudioData regular
-		if(drawWaveform != null && surfaceReady){
-			//this.processedAudioBuffer = processedAudioBuffer;
-			drawWaveform.sendProcessedAudioData(processedAudioBuffer);
-			//System.out.println("renderer fft section ready");
-			isProcessedDataReady = true;
+			drawWaveform.sendProcessedBundle(bundle);
 		}
 	}
+
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
-        GLES20.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        //isDrawReady = true;
-        //drawWaveform = new DrawWaveform();
+        GLES20.glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
         /*
      // Set the background color to black ( rgba ).
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 0.5f);  // OpenGL docs.
@@ -114,7 +85,7 @@ public class MyRenderer implements Renderer {
     public void onSurfaceChanged(GL10 unused, int width, int height) {
         GLES20.glViewport(0, 0, width, height);
         //GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-        drawWaveform = new DrawWaveform();
+        drawWaveform = new DrawClass();
         surfaceReady = true;
     }
 }

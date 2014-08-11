@@ -245,6 +245,7 @@ public final class FastYin {
 			// taking only the real part
 			yinBuffer[j] = powerTerms[0] + powerTerms[j] - 2 * yinStyleACF[2 * (yinBuffer.length - 1 + j)];
 		}
+		cumulativeMeanNormalizedDifference();
 		return yinBuffer;
 	}
 

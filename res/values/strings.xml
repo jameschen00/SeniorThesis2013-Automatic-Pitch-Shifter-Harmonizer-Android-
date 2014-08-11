@@ -12,6 +12,14 @@
     <string name="shiftString">0</string>
     <string name="horZoomString">0</string>
     <string name="verZoomString">0</string>
+    <string name="combineString">0</string>
     <string name="filter">Filter</string>
+    <string name="freqTitle">Freq: </string>
+    <string name="noteTitle">Note: </string>
+    <string name="record_title">Record</string>
+    <string name="live_title">Live</string>
+    <string name="autotune">Autotune</string>
+    <string name="manual_title">Manual shift</string>
+    <string name="auto_title">Auto Harmony</string>
 
 </resources>

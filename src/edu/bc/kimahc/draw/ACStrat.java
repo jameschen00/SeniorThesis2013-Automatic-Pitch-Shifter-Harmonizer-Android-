@@ -3,10 +3,11 @@ package edu.bc.kimahc.draw;
 import java.nio.FloatBuffer;
 
 import android.opengl.GLES20;
+import android.os.Bundle;
 
 public class ACStrat extends DrawStrat{
 
-	private float[] abuf;
+	private float[] abuf, acBuffer;
 	public ACStrat(FloatBuffer vertexBuffer, int bufLen) {
 		super(vertexBuffer, bufLen);
 		abuf = new float[audioBufferLength];
@@ -20,14 +21,18 @@ public class ACStrat extends DrawStrat{
 		return 120f/(horizontalZoom+20f);
 	}
 
-	public FloatBuffer setDrawBuffers(float[] buf, int drawBufferLength, int horizontalZoom,
-			int verticalZoom, int tab) {
-		if(buf.length == audioBufferLength/2){
-			//float max = buf[0];
+	public void draw(int vertexCount, int mColorHandle){
+		GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
+	}
+
+
+	public FloatBuffer setDrawBuffers(Bundle bundle, int drawBufferLength,
+			int horizontalZoom, int verticalZoom, int tab) {
+		acBuffer = bundle.getFloatArray("processed");
+		if(acBuffer.length == audioBufferLength/2){
 			for(int i = 0; i < drawBufferLength/2; i=i+1){ //1034
 				abuf[i*2] = (float)(i * 4f)/ (float)drawBufferLength - 1f;		//x coord
-				abuf[i*2+1] = (buf[i])*(10f/(verticalZoom+1)) - 1f;///max;//*(20f/(verticalZoom+1));				//y
-				//System.out.println(buf[i]);
+				abuf[i*2+1] = (acBuffer[i])*(10f/(verticalZoom+1)) - 1f;		//y
 			}	
 			synchronized(vertexBuffer){
 				vertexBuffer.clear();
@@ -37,9 +42,4 @@ public class ACStrat extends DrawStrat{
 		}
 		return vertexBuffer;
 	}
-
-	public void draw(int vertexCount) {
-		GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
-	}
-
 }

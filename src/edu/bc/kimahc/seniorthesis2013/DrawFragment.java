@@ -1,19 +1,12 @@
 package edu.bc.kimahc.seniorthesis2013;
 
-import android.app.ActivityManager;
-import android.content.Context;
-import android.content.pm.ConfigurationInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import com.actionbarsherlock.app.SherlockFragment;
 
 public class DrawFragment extends Fragment{
 	private int tab = 1;
@@ -54,48 +47,10 @@ public class DrawFragment extends Fragment{
 	    super.onPause();
 	    surfaceView.onPause();
 	}
-	/*
-	public void sendAudioData(float[] floatAudioBuffer){
-		if(renderer != null && floatAudioBuffer != null){
-
-	        endTime = System.nanoTime();
-	        dt = endTime - startTime;
-	        System.out.println("dt = " + dt);
-			startTime = System.nanoTime();
-			
-			long rStartTime = System.nanoTime();
-			
-			renderer.sendAudioData(audioBuffer);
-			
-	        long rEndTime = System.nanoTime();
-	        dt = rEndTime - rStartTime;
-	        System.out.println("send data = " + dt);
-			
-			surfaceView.requestRender();
-			
-			renderer.sendAudioData(floatAudioBuffer);
-		}
-			
-	}
-/*
-	@Override
-	public void onSaveInstanceState(Bundle outState)
-	{
-		v.onSaveInstanceState();
-		if(v.onSaveInstanceState(outState) == null)
-			Log.i(tag,"Saving state FAILED!");
-		else
-			Log.i(tag, "Saving state succeeded.");      
-	}
 	
-	
-	public void onRestoreInstanceState(Parcelable state){
-		
-	}
-*/
-	public void sendProcessedAudioData(float[] processedAudioBuffer) {
-		if(renderer != null && processedAudioBuffer != null){
-			renderer.sendProcessedAudioData(processedAudioBuffer);
+	public void sendProcessedBundle(Bundle bundle) {
+		if(renderer != null && bundle != null){
+			renderer.sendProcessedBundle(bundle);
 			surfaceView.requestRender();
 		}
 	}

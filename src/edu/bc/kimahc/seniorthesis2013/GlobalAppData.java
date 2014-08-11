@@ -12,17 +12,21 @@ public class GlobalAppData extends Application{
 	private volatile int tab;
 	private int horizontalZoom;
 	private int verticalZoom;
+	private int combineAmount;
 	private int audioBufferLength = 2048;
 	private final int highFreqCutoff = 1200;
 	private final int lowFreqCutoff = 50;
 	private boolean pause = false;
-	private boolean isLive;
-	private boolean isCombined;
+	private boolean autotune = false;
 	private boolean isFiltered;
+	private boolean isLive = false;
+	private boolean isManual = true;
     private int maxPitchMarks;
     private int pitchShiftAmount = 0;
-    private volatile float peakVar =0, valleyVar =0, peakNum =0, valleyNum = 0, exPeakNum = 0, exValleyNum = 0;
-	//private 
+    private int key = 0;
+    private volatile float peakVar =0, valleyVar =0, peakNum =0, valleyNum = 0, exPeakNum = 0, exValleyNum = 0, valleyEst = 0, peakEst = 0;
+    private volatile float yinDelay = 0, yinCount = 0, markDelay = 0, markCount = 0, shiftDelay = 0, shiftCount = 0;
+	private float yinThreshold = 0f;
 	
     public int getAudioBufferLength(){
     	return audioBufferLength;
@@ -97,40 +101,49 @@ public class GlobalAppData extends Application{
 	public int getShiftAmount() {
 		return pitchShiftAmount;	
 	}
+	
+	public void setKey(int root) {
+		key = root%12;	
+	}
+	
+	public int getKey() {
+		return key;	
+	}
 
-	public void setLive(boolean checked) {
-		isLive = checked;
+	public void setCombine(int combine){
+		combineAmount = combine;
+	}
+	
+	public int getCombine(){
+		return combineAmount;
+	}
+	
+	public synchronized void incValleyVar(float inc, int num, float expPer){
+
+		valleyVar += inc*(num-1);
+		valleyNum += num-1;
+		valleyEst += expPer*(num-1);
+		float std = (float) Math.sqrt(inc);
+		if(std/expPer > 0.059f){
+			exValleyNum += num-1;
+		}
+		float avgstd = (float) Math.sqrt(valleyVar/valleyNum);
+		
+		Log.i("valley std", "" + avgstd + " avgper " + (valleyEst/valleyNum)+ " %std/per>0.059= " + (exValleyNum/valleyNum) + " c= " + valleyNum);
 		
 	}
-	
-	public boolean getLive(){
-		return isLive;
-	}
-	
-	public void setCombine(boolean combine){
-		isCombined = combine;
-	}
-	
-	public boolean getCombine(){
-		return isCombined;
-	}
-	
-	public synchronized void incValleyVar(float inc, int num){
-		valleyVar += inc*num;
-		valleyNum += num;
-		if(inc > 100){
-			exValleyNum += num;
-		}
-		Log.i("avg valley var", "" + valleyVar/valleyNum + "  % var > 100 = " + (exValleyNum/valleyNum) + " count = " + valleyNum);
+	public synchronized void incPeakVar(float inc, int num, float expPer){
 		
-	}
-	public synchronized void incPeakVar(float inc, int num){
-		peakVar += inc*num;
-		peakNum += num;
-		if(inc > 100){
-			exPeakNum += num;
+		peakVar += inc*(num-1);
+		peakNum += num-1;
+		peakEst += expPer*(num-1);
+		float std = (float) Math.sqrt(inc);
+		if(std/expPer > 0.059f){
+			exPeakNum += num-1;
 		}
-		Log.i("avg peak var", "" + peakVar/peakNum + "  % var > 100 = " + (exPeakNum/peakNum) + " count = " + peakNum);
+		float avgstd = (float) Math.sqrt(peakVar/peakNum);
+		
+		Log.i("peak std", "" + avgstd + " avgper " + (peakEst/peakNum) + " %std/per>0.059= " + (exPeakNum/peakNum) + " c= " + peakNum);
 	}
 	
 	public float getValleyVar(){
@@ -153,5 +166,50 @@ public class GlobalAppData extends Application{
 	}
 	public int getLowFreqCutoff() {
 		return lowFreqCutoff;
+	}
+	
+	public void incYin(long delay){
+		yinDelay += (float) delay;
+		yinCount++;
+		Log.i("avg yin delay", "" + yinDelay/yinCount);
+	}
+	
+	public void incMark(long delay){
+		markDelay += (float) delay;
+		markCount++;
+		Log.i("avg mark delay", "" + markDelay/markCount);
+	}
+	
+	public void incShift(long delay){
+		shiftDelay += (float) delay;
+		shiftCount++;
+		Log.i("avg shift delay", "" + shiftDelay/shiftCount);
+	}
+	public void setYinThreshold(float f) {
+		yinThreshold = f;
+	}
+	public float getYinThreshold() {
+		return yinThreshold;
+	}
+	public void setAutotune(boolean checked) {
+		autotune = checked;
+	}
+	
+	public boolean getAutotune() {
+		return autotune;
+	}
+	public void setLive(boolean checked) {
+		isLive = checked;
+	}
+	
+	public boolean getLive() {
+		return isLive;
+	}
+	public void setManual(boolean checked) {
+		isManual = checked;
+	}
+	
+	public boolean getManual() {
+		return isManual;
 	}
 }

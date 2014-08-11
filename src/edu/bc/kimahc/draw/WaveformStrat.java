@@ -7,85 +7,84 @@ import edu.bc.kimahc.soundProcessing.LowPassFilter;
 import edu.bc.kimahc.soundProcessing.PitchMarker;
 import edu.bc.kimahc.soundProcessing.PitchShifter;
 
+import Music.Tones;
 import android.opengl.GLES20;
+import android.os.Bundle;
+import android.util.Log;
 
 public class WaveformStrat extends DrawStrat{
-	private float[] abuf, shiftedBuffer, shiftedMarks;
-	private int pitchMarksLength = 0;
+	private float[] abuf, shiftedBuffer, shiftedMarks, unprocessedBuffer, processedBuffer, pitchMarks, prevPitchMarks;
+	private float freq;
+	private int pitchMarksLength = 0, prevMarksLength = 0;;
 	private GlobalAppData global;
 	private int latestVert = 0;
 	private int latestDraw = 0;
-	float color[] = { 1f, 0f, 0f, 1.0f };
+	private float red[] = { 0.86f, 0.0f, 0.0f, 1.0f };
+	private float blue[] = { 0f, 0.0f, 0.8f, 1.0f };
+	private float color[] = { 0.5f, 0.76953125f, 0.22265625f, 1.0f };
 	public WaveformStrat(FloatBuffer vertexBuffer, int bufLen) {
 		super(vertexBuffer, bufLen);
 		global = GlobalAppData.getInstance();
-		abuf = new float[audioBufferLength*2 + 360]; //manually added 160...better to use max pitch marks (which is calculated later)
+		abuf = new float[audioBufferLength*2 + 360]; //manually added 360...better to use max pitch marks (which is calculated later)
 		shiftedBuffer = new float[audioBufferLength*2];
 	}
 
-	public synchronized FloatBuffer setDrawBuffers(float[] buf, int drawBufferLength, int horizontalZoom,
-			int verticalZoom, int tab) {
-		//float[] abuf = new float[buf.length*2];
-		if(buf.length == audioBufferLength){ //the given buffer must be the correct size
+	public FloatBuffer setDrawBuffers(Bundle bundle, int drawBufferLength,
+			int horizontalZoom, int verticalZoom, int tab) {
+		unprocessedBuffer = bundle.getFloatArray("unprocessed");
+		processedBuffer = bundle.getFloatArray("processed");
+		pitchMarks = bundle.getFloatArray("pitchMarks");
+		prevPitchMarks = bundle.getFloatArray("prevPitchMarks");
+		prevMarksLength = 0;
+		
+		if(unprocessedBuffer != null){
 			pitchMarksLength = 0;
 			for(int i = 0; i < drawBufferLength; i=i+1){
 				abuf[2*i] = (float)(i * 2f)/ (float)drawBufferLength - 1f;	//x coord
-				//System.out.println("i = " + abuf[2*i]);
-				abuf[2*i+1] = (2*buf[i])*(50f/(verticalZoom+1))+0.5f;	//y coord
-				//System.out.println("i+1 = " + abuf[2*i+1] + "  " + audioBuffer[0][i]);
-				//for(int j = 0; j < kNumDrawBuffers; j++){
-			}
-			synchronized(vertexBuffer){
-				vertexBuffer.clear();
-		        vertexBuffer.put(abuf).flip();
-		        vertexBuffer.position(0);
+				abuf[2*i+1] = (2*unprocessedBuffer[i])*(50f/(verticalZoom+1))+0.5f;	//y coord
 			}
 		}
-		else if(buf.length > audioBufferLength){ //if buffer data also includes pitch marks, draw differently
-			for(int i = 0; i < drawBufferLength; i=i+1){
-				abuf[2*i] = (float)(i * 2f)/ (float)drawBufferLength - 1f;	//x coord
-				//System.out.println("i = " + abuf[2*i]);
-				abuf[2*i+1] = (2*buf[i])*(50f/(verticalZoom+1))+0.5f;	//y coord
-				//System.out.println("i+1 = " + abuf[2*i+1] + "  " + audioBuffer[0][i]);
-				//for(int j = 0; j < kNumDrawBuffers; j++){
-			}
-			//System.out.println("abuf length = " + abuf.length);
-			int offset = audioBufferLength-1; //subtract one to include the pitchMarksLength element
-			pitchMarksLength = (int) buf[audioBufferLength]; //the first element after the audio buffer contains the number of pitch marks		
-			
-			//now drawing pitch marks
-			for(int i = audioBufferLength*2; i < audioBufferLength*2 + pitchMarksLength; i=i+2){
-				abuf[i] = (float)(buf[i-offset] * 2f)/ (float)drawBufferLength - 1f;	//x coord
-				abuf[i+1] = (2*buf[i+1-offset])*(50f/(verticalZoom+1))+0.5f;	//y coord
+		if(prevPitchMarks != null){ // draw previous pitch marks separately
+			prevMarksLength = prevPitchMarks.length;	
+
+			//now drawing previous pitch marks
+			int offset = audioBufferLength*2;
+			for(int i = 0; i < prevMarksLength; i=i+2){
+				abuf[offset+i] = (float)(prevPitchMarks[i] * 2f)/ (float)drawBufferLength - 1f;	//x coord
+				abuf[offset+i+1] = (prevPitchMarks[i+1] * 2f)*(50f/(verticalZoom+1))+0.5f;	//y coord
 				}
-			float[] pitchMarks = new float[pitchMarksLength];
-			System.arraycopy(buf, audioBufferLength+1, pitchMarks, 0, pitchMarksLength);
-			float[] floatAudioBuffer = new float[audioBufferLength];
-			System.arraycopy(buf, 0, floatAudioBuffer, 0, audioBufferLength);
-			
+		}
+		if(pitchMarks != null){ // draw pitch marks separately
+			pitchMarksLength = pitchMarks.length;
+
+			//now drawing pitch marks
+			int offset = audioBufferLength*2 + prevMarksLength;
+			for(int i = 0; i < pitchMarksLength; i=i+2){
+				abuf[offset+i] = (float)(pitchMarks[i] * 2f)/ (float)drawBufferLength - 1f;	//x coord
+				abuf[offset+i+1] = (pitchMarks[i+1] * 2f)*(50f/(verticalZoom+1))+0.5f;	//y coord
+				}
+
 			
 			//shiftedBuffer = PitchShifter.pitchShift(floatAudioBuffer, pitchMarks, 1, global.getShiftAmount(), 1, false, 44100, global.getLowFreqCutoff(), global.getHighFreqCutoff());
-			shiftedBuffer = LowPassFilter.filter(floatAudioBuffer, 44100, 1200f);
+			
 			//shiftedMarks = PitchShifter.pitchShiftMarks(floatAudioBuffer, pitchMarks, 1, global.getShiftAmount(), 1);
-			float est;
-			if(pitchMarks.length > 3)
-				est = 44100f/(pitchMarks[2] - pitchMarks[0]);
-			else
-				est = audioBufferLength;
-			shiftedMarks = PitchMarker.pitchMark(shiftedBuffer, est, 44100);
 			
 			
-			latestVert = verticalZoom;
-			latestDraw = drawBufferLength;
-			synchronized(vertexBuffer){
-				vertexBuffer.clear();
-		        vertexBuffer.put(abuf).flip();
-		        vertexBuffer.position(0);
-			}
+			float freq = bundle.getFloat("freq");
+			freq = (float) Math.pow(2, (global.getShiftAmount()/12))*freq;
+			//shiftedMarks = PitchMarker.pitchMark(shiftedBuffer, freq, 44100);
+		}
+		shiftedBuffer = processedBuffer;
+		latestVert = verticalZoom;
+		latestDraw = drawBufferLength;
+		synchronized(vertexBuffer){
+			vertexBuffer.clear();
+	        vertexBuffer.put(abuf).flip();
+	        vertexBuffer.position(0);
 		}
 		return vertexBuffer;
 	}
-
+	
 	public int setVertexCount(int drawBufferLength) {
 		return drawBufferLength;
 	}
@@ -94,46 +93,54 @@ public class WaveformStrat extends DrawStrat{
 		return 120f/(horizontalZoom+20f);
 	}
 
-	public synchronized void draw(int vertexCount) {
+	public synchronized void draw(int vertexCount, int mColorHandle){
 		GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
-		if(pitchMarksLength > 0){
-			//GLES20.gl
-			GLES20.glDrawArrays(GLES20.GL_POINTS, audioBufferLength, pitchMarksLength/2);
-			
-			if(shiftedBuffer !=null){
-				for(int i = 0; i < latestDraw; i=i+1){
-					abuf[2*i] = (float)(i * 2f)/ (float)latestDraw - 1f;	//x coord
-					//System.out.println("i = " + abuf[2*i]);
-					abuf[2*i+1] = (2*shiftedBuffer[i])*(50f/(latestVert+1))-0.5f;	//y coord
-					//System.out.println("i+1 = " + abuf[2*i+1] + "  " + audioBuffer[0][i]);
-					//for(int j = 0; j < kNumDrawBuffers; j++){
-				}
-			}
-			
-			if(shiftedMarks != null){
-				int synthMarksLength =  shiftedMarks.length;
-				if(synthMarksLength > 0){
-					int offset = audioBufferLength*2;
-					//now drawing pitch marks
-					for(int i = 0; i < synthMarksLength; i=i+2){
-						abuf[i+offset] = (float)(shiftedMarks[i] * 2f)/ (float)latestDraw - 1f;	//x coord
-						abuf[i+offset+1] = (2*shiftedMarks[i+1])*(50f/(latestVert+1))-0.5f;	//y coord
-						}
-					synchronized(vertexBuffer){
-						vertexBuffer.clear();
-				        vertexBuffer.put(abuf).flip();
-				        vertexBuffer.position(0);
-					}
-					
-					//GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, vertexBuffer.capacity(), vertexBuffer);
-					//GLES20.glUniform4fv(mColorHandle, 1, color, 0);
-					GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
-					GLES20.glDrawArrays(GLES20.GL_POINTS, audioBufferLength, synthMarksLength/2);
-				}
-			}
-			
-			
+		
+		if(prevMarksLength > 0){
+			GLES20.glUniform4fv(mColorHandle, 1, blue, 0);
+			GLES20.glDrawArrays(GLES20.GL_POINTS, audioBufferLength, prevMarksLength/2);
 		}
+		
+		if(pitchMarksLength > 0){
+			GLES20.glUniform4fv(mColorHandle, 1, red, 0);
+			GLES20.glDrawArrays(GLES20.GL_POINTS, audioBufferLength+prevMarksLength/2, pitchMarksLength/2);
+		}
+		
+		if(shiftedBuffer !=null && shiftedBuffer.length >= latestDraw){
+			for(int i = 0; i < latestDraw; i=i+1){
+				abuf[2*i] = (float)(i * 2f)/ (float)latestDraw - 1f;	//x coord
+				abuf[2*i+1] = (2*shiftedBuffer[i])*(50f/(latestVert+1))-0.5f;	//y coord
+			}
+			synchronized(vertexBuffer){
+				vertexBuffer.clear();
+		        vertexBuffer.put(abuf).flip();
+		        vertexBuffer.position(0);
+			}
+			GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+			GLES20.glDrawArrays(GLES20.GL_LINE_STRIP, 0, vertexCount);
+		}
+		
+		if(shiftedMarks != null){ //this isnt currently set
+			int synthMarksLength =  shiftedMarks.length;
+			if(synthMarksLength > 0){
+				int offset = audioBufferLength*2;
+				//now drawing synth pitch marks
+				for(int i = 0; i < synthMarksLength; i=i+2){
+					abuf[i+offset] = (float)(shiftedMarks[i] * 2f)/ (float)latestDraw - 1f;	//x coord
+					abuf[i+offset+1] = (2*shiftedMarks[i+1])*(50f/(latestVert+1))-0.5f;	//y coord
+					}
+
+				synchronized(vertexBuffer){
+					vertexBuffer.clear();
+			        vertexBuffer.put(abuf).flip();
+			        vertexBuffer.position(0);
+				}
+				//GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, 0, vertexBuffer.capacity(), vertexBuffer);
+				GLES20.glUniform4fv(mColorHandle, 1, red, 0);
+				GLES20.glDrawArrays(GLES20.GL_POINTS, audioBufferLength, synthMarksLength/2);
+			}
+		}
+	
 		
 		
 	}

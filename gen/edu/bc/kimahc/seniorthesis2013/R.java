@@ -960,32 +960,41 @@ containing a value of this type.
         public static final int abs__title=0x7f04001b;
         public static final int abs__titleDivider=0x7f04001c;
         public static final int abs__up=0x7f04000b;
-        public static final int addShift=0x7f04003a;
-        public static final int combineCheck=0x7f040037;
+        public static final int addShift=0x7f04003f;
+        public static final int autotuneCheck=0x7f040042;
+        public static final int combineBar=0x7f04003b;
+        public static final int combineText=0x7f04003c;
         public static final int disableHome=0x7f040009;
         public static final int edit_query=0x7f040027;
-        public static final int filterCheck=0x7f04003d;
+        public static final int filterCheck=0x7f040044;
+        public static final int freqNum=0x7f040038;
+        public static final int freqTitle=0x7f040037;
         public static final int homeAsUp=0x7f040006;
         public static final int horZoom=0x7f040033;
         public static final int horZoomText=0x7f040034;
         public static final int listMode=0x7f040002;
-        public static final int liveCheck=0x7f04003b;
-        public static final int menu_settings=0x7f040040;
+        public static final int manual_title=0x7f040049;
+        public static final int menu_settings=0x7f040047;
         public static final int normal=0x7f040001;
+        public static final int noteText=0x7f04003a;
+        public static final int noteTitle=0x7f040039;
         public static final int pauseButton=0x01010001;
         public static final int realtabcontent=0x01010000;
-        public static final int recordButton=0x7f04003c;
-        public static final int shiftAmount=0x7f040039;
+        public static final int recordButton=0x7f040043;
+        public static final int record_title=0x7f040048;
+        public static final int shiftAmount=0x7f04003e;
+        public static final int shiftedNoteText=0x7f040041;
+        public static final int shiftedNoteTitle=0x7f040040;
         public static final int showCustom=0x7f040008;
         public static final int showHome=0x7f040005;
         public static final int showTitle=0x7f040007;
-        public static final int subShift=0x7f040038;
-        public static final int surfaceView=0x7f04003e;
+        public static final int subShift=0x7f04003d;
+        public static final int surfaceView=0x7f040045;
         public static final int tabMode=0x7f040003;
         public static final int useLogo=0x7f040004;
         public static final int verZoom=0x7f040035;
         public static final int verZoomText=0x7f040036;
-        public static final int waveformText=0x7f04003f;
+        public static final int waveformText=0x7f040046;
         public static final int wrap_content=0x7f040000;
     }
     public static final class integer {
@@ -1023,7 +1032,7 @@ containing a value of this type.
         public static final int waveform_fragment=0x7f03001c;
     }
     public static final class menu {
-        public static final int activity_main=0x7f0b0000;
+        public static final int menu=0x7f0b0000;
     }
     public static final class string {
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
@@ -1072,12 +1081,20 @@ containing a value of this type.
          */
         public static final int abs__shareactionprovider_share_with_application=0x7f090009;
         public static final int app_name=0x7f09000f;
-        public static final int filter=0x7f09001a;
+        public static final int auto_title=0x7f090022;
+        public static final int autotune=0x7f090020;
+        public static final int combineString=0x7f09001a;
+        public static final int filter=0x7f09001b;
+        public static final int freqTitle=0x7f09001c;
         public static final int hello=0x7f090010;
         public static final int horZoomString=0x7f090018;
+        public static final int live_title=0x7f09001f;
+        public static final int manual_title=0x7f090021;
         public static final int menu_settings=0x7f090011;
+        public static final int noteTitle=0x7f09001d;
         public static final int pause=0x7f090014;
         public static final int pitchFrag=0x7f090012;
+        public static final int record_title=0x7f09001e;
         public static final int shiftString=0x7f090017;
         public static final int start_record=0x7f090015;
         public static final int stop_record=0x7f090016;

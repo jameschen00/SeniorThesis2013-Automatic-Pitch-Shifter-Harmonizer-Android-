@@ -181,7 +181,6 @@ public class AudioThread extends Thread
     }
     
     public void playTrack(short[] buffer){
-
         audioTrack.write(buffer, 0, bufferSize);
     }
     
@@ -198,9 +197,11 @@ public class AudioThread extends Thread
 		else{
 			Log.i("audioThread", "stop write...isWriting = " + audioProcessingThread.isWriting());
 		}
-		
 	}
 
+	public void interruptWrite(){
+		audioProcessingThread.interruptWrite();
+	}
     public void onPause() {
         synchronized (mPauseLock) {
             mPaused = true;
@@ -220,5 +221,12 @@ public class AudioThread extends Thread
     	alive = false;
     }
 
+	public void startLive() {
+		audioProcessingThread.startLive();
+	}
+
+	public void stopLive() {
+		audioProcessingThread.stopLive();
+	}
 
 }
